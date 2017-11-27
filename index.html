@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://d3js.org/d3.v3.js"></script>
+<style>
+body{ font: Arial 12px; text-align: center;}
+.link {
+  stroke: #ccc;
+}
+.node text {
+  pointer-events: none;
+  font: sans-serif;
+}
+</style>
+<!-- <link rel="stylesheet" type="text/css" href="css/style.css"> -->
+</head>
+<body>
+<h4>Organization Chart - Mobile, GTS</h4>
+<script type="text/javascript">
+//Set margins and sizes
+var margin = {
+top: 20,
+bottom: 50,
+right: 30,
+left: 50
+};
+
+var width = 960 - margin.left - margin.right;
+var height = 700 - margin.top - margin.bottom;
+
+//Load Color Scale
+var c10 = d3.scale.category10();
+
+//Create an SVG element and append it to the DOM
+var svgElement = d3.select("body")
+.append("svg").attr({"width": width+margin.left+margin.right, "height": height+margin.top+margin.bottom})
+.append("g")
+.attr("transform","translate("+margin.left+","+margin.top+")");
+
+//Load External Data
+d3.csv("input.csv", function(error, links){
+	var nodesByName = {};
+	links.forEach(function(link){
+		link.source = nodeByName(link.name, link.level, link.location);
+		link.target = nodeByName(link.manager, null, null);
+	});
+
+	var nodes = d3.values(nodesByName);
+
+	function nodeByName(name, level, location) {
+    	return nodesByName[name] || (nodesByName[name] = {name: name, level: level, location: location});
+  	}
+
+	//Create Force Layout
+	var force = d3.layout.force()
+	.size([width, height])
+	.nodes(nodes)
+	.links(links)
+	.gravity(0.05)
+	.charge(-200)
+	.linkDistance(function(d){return (7-d.level)*70;});
+
+	//Add links to SVG
+	var link = svgElement.selectAll(".link")
+	.data(links)
+	.enter()
+	.append("line")
+	.attr("class", "link");
+
+	//Add nodes to SVG
+	var node = svgElement.selectAll(".node")
+	.data(nodes)
+	.enter()
+	.append("g")
+	.attr("class", "node")
+	.call(force.drag);
+
+	//Add labels to each node
+	var label = node.append("text")
+	.attr("dx", 12)
+	.attr("dy", "0.35em")
+	.attr("font-size", function(d){ return (7-d.level)*1.8+9; })
+	.text(function(d){ return d.name; });
+
+	//Add circles to each node
+	var circle = node.filter(function(d){return d.name !=""})
+	.append("circle")
+	.attr("r", function(d){ return (7-d.level)*1.8+2; })
+	.attr("fill", function(d){ return c10(d.location); });
+
+	//This function will be executed once force layout is done with its calculations
+	force.on("tick", function(){
+		//Set X, Y of link
+		link.attr("x1", function(d){ return d.manager == ""? -1: d.source.x; })
+		link.attr("y1", function(d){ return d.manager == ""? -1: d.source.y; })
+		link.attr("x2", function(d){ return d.manager == ""? -1: d.target.x; })
+		link.attr("y2", function(d){ return d.manager == ""? -1: d.target.y; });
+
+		//Shift node a little
+		node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+	});
+
+	//Add legends to SVG
+	var legend = svgElement.selectAll(".legend")
+	    .data(c10.domain())
+	    .enter().append("g")
+	    .attr("class", "legend")
+	    .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+	legend.append("circle")
+	    .attr("cx", width - 8)
+	    .attr("cy", 9)
+	    .attr("r", 6)
+	    .style("fill", function(d){return c10(d);});
+
+	legend.append("text")
+	    .attr("x", width - 24)
+	    .attr("y", 9)
+	    .attr("dy", ".25em")
+	    .style("text-anchor", "end")
+	    .attr("font-size", 10)
+	    .text(function(d) { return d; });
+
+	//Start the force layout calculation
+	force.start();
+});
+</script>
+</body>
+</html>

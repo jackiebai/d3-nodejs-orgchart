@@ -1,0 +1,9 @@
+id,level,name,manager,location
+1,1,John Smith,,Omaha
+2,2,SVP1,John Smith,Scott Valley
+3,3,VP1,SVP1,Scott Valley
+4,4,Director 1,VP1,Toronto
+5,5,Manager 1,Director 1,Tennessee
+6,5,Manager 2,Director 1,Toronto
+10,6,Person 1,Manager 1,Toronto
+11,6,Person 2,Manager 2,Toronto

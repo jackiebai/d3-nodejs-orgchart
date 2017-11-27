@@ -1,0 +1,8 @@
+{
+  "name": "nodeOrgChart",
+  "version": "1.0.0",
+  "description": "Simple D3 chart",
+  "scripts": {
+    "start": "gulp run"
+  }
+}
